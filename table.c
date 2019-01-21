@@ -25,41 +25,48 @@ void AddStrokeChar(Table *l, const char *s)
 	}
 }
 
-// compare method
-// return 0 if matched
-int CompareStroke(const char *s1, const char *s2)
+// return 0 if not matched
+// pattern may contain * or ?
+int CompareStroke(const char *stroke, const char *pattern)
 {
 	while (1) {
-		// matched
-		if (!*s2) { return 0; }
-		// do not matched
-		if (!*s1) { return 1; }
+		if (!*stroke) {
+			while (*pattern == '*') { pattern++; }
+			return (*pattern == '\0');
+		}
+		// not matched
+		if (!*pattern) { return 0; }
 
-		// match any character
-		if (*s2 == '?') {
-			s1++;
-			s2++;
-			continue;
+		if (*pattern == '*') {
+			// match test for each character
+			return (CompareStroke(stroke, pattern + 1) ||
+					CompareStroke(stroke + 1, pattern));
 		}
 
-		// do not matched
-		if (*s1 != *s2) { return 1; }
-
-		s1++;
-		s2++;
+		if ((*stroke == *pattern) || (*pattern == '?')) {
+			stroke++;
+			pattern++;
+			continue;
+		}
+		// not matched
+		return 0;
 	}
-
-	return 0;
 }
 
 // caller must array_free return array
 Array *GetStrokeResult(Table *list, char *stroke)
 {
+	// if no '*' in stroke, append this
+	char buf[STROKE_MAX_CHAR + 1];
+	strcpy(buf, stroke);
+	if (!strchr(buf, '*')) {
+		strcat(buf, "*");
+	}
 	Array *arr2 = array_new(sizeof(StrokeResult));
 	for (int i = 0; i < list->arr->length; i++) {
 		StrokeResult *sr = array_get(list->arr, i);
 		//fprintf(stderr, "compare: %s, %s\n", sr->stroke, stroke);
-		if (CompareStroke(sr->stroke, stroke) == 0) {
+		if (CompareStroke(sr->stroke, buf)) {
 			array_add(arr2, sr);
 		}
 	}

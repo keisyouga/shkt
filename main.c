@@ -103,6 +103,11 @@ int GetScreenHeight()
 //	return rc.bottom;
 }
 
+int CandidateExists()
+{
+	return (candidate.list && candidate.list->length > 0);
+}
+
 // display current keystroke and candidate
 void ShowCandWin()
 {
@@ -116,6 +121,7 @@ void ShowCandWin()
 	}
 
 	// show candidate in listbox
+	if (!CandidateExists()) { return; }
 	char str[CANDWIN_ITEM_BUFSIZE];
 	WCHAR wstr[CANDWIN_ITEM_BUFSIZE];
 	int start = candidate.selected / PAGE_ITEM_MAX * PAGE_ITEM_MAX;
@@ -164,13 +170,6 @@ void ShowCandWin()
 	SetWindowPos(hCandwin, HWND_TOPMOST, pt.x, pt.y, 0, 0,
 				 SWP_NOSIZE | SWP_NOACTIVATE | SWP_SHOWWINDOW);
 
-}
-
-
-char GetStrokeChar()
-{
-	DBG_PRINT("not implement yet\n");
-	return 0;
 }
 
 // delete last character
@@ -239,6 +238,7 @@ char GetChar(KBDLLHOOKSTRUCT *kb, int mod)
 		return 0;
 	}
 }
+
 // selected position of candidate is moved n-times
 void MoveSelectCandidate(int n)
 {
@@ -259,6 +259,7 @@ void SendString()
 	gui.cbSize = sizeof(GUITHREADINFO);
 	GetGUIThreadInfo(0, &gui);
 
+	if (!CandidateExists()) { return; }
 	StrokeResult *sr = array_get(candidate.list, candidate.selected);
 	const char *str = sr->result;
 	DBG_PRINT("SendString:%s\n", str);
@@ -313,6 +314,10 @@ int SelectCandidate(int n)
 
 LRESULT CALLBACK KeyboardProc(int nCode, WPARAM wParam, LPARAM lParam)
 {
+	KBDLLHOOKSTRUCT *kb = (KBDLLHOOKSTRUCT *) lParam;
+	int mod = GetCurrentMod();
+	int strokebuf_changed = 0;
+
 	if (nCode != HC_ACTION) {
 		return CallNextHookEx(hHook, nCode, wParam, lParam);
 	}
@@ -320,9 +325,6 @@ LRESULT CALLBACK KeyboardProc(int nCode, WPARAM wParam, LPARAM lParam)
 	if ((wParam != WM_KEYDOWN) && (wParam != WM_SYSKEYDOWN)) {
 		return CallNextHookEx(hHook, nCode, wParam, lParam);
 	}
-
-	KBDLLHOOKSTRUCT *kb = (KBDLLHOOKSTRUCT *) lParam;
-	int mod = GetCurrentMod();
 
 	// switch table
 	for (int i = 0; i < 10; i++) {
@@ -341,8 +343,8 @@ LRESULT CALLBACK KeyboardProc(int nCode, WPARAM wParam, LPARAM lParam)
 		}
 	}
 
-	// if there is candidate
-	if (candidate.list && !mod) {
+	// if there is strokebuf
+	if (strokeBuf.pos > 0 && !mod) {
 
 		switch (kb->vkCode) {
 
@@ -393,17 +395,13 @@ LRESULT CALLBACK KeyboardProc(int nCode, WPARAM wParam, LPARAM lParam)
 			// backspace
 		case VK_BACK:
 			BackStrokeBuf();
+			// no stroke?
 			if (strokeBuf.pos <= 0) {
-				// no stroke
 				ClearStrokeBuf();
 				HideCandWin();
-			} else {
-				array_free(candidate.list);
-				candidate.list = GetStrokeResult(&g_table, GetStrokeBuf());
-				candidate.selected = 0;
-				ShowCandWin();
+				return TRUE;
 			}
-			return TRUE;
+			strokebuf_changed = 1;
 		}
 	}
 
@@ -412,59 +410,69 @@ LRESULT CALLBACK KeyboardProc(int nCode, WPARAM wParam, LPARAM lParam)
 	char ch = GetChar(kb, mod);
 	// do not process, if alt or control or win is pressed
 	if (ch && (!mod || mod == MOD_SHIFT)) {
-		if (IsCharStroke(&g_table, ch) || ch == '?') {
-
+		if (IsCharStroke(&g_table, ch) || ch == '?' || ch == '*') {
 			AddStrokeBuf(ch);
-			Array *arr = GetStrokeResult(&g_table, GetStrokeBuf());
-
-			if (arr->length <= 0) {
-				// no candidate
-
-				if (tableOpt.forceNextChar) {
-					DBG_PRINT("forceNextChar\n");
-					// send previously selected item
-					array_free(arr);
-					SendString();
-					ClearStrokeBuf();
-					// process new char
-					AddStrokeBuf(ch);
-					// have candidate certainly, because this is first stroke
-					arr = GetStrokeResult(&g_table, GetStrokeBuf());
-				} else {
-					DBG_PRINT("%c is ignored\n", ch);
-					// ignore input
-					array_free(arr);
-					BackStrokeBuf();
-					//return CallNextHookEx(hHook, nCode, wParam, lParam);
-					return TRUE;
-				}
-			}
-			// have candidate
-			if (candidate.list) {
-				// free previous candidate
-				array_free(candidate.list);
-			}
-			candidate.list = arr;
-			candidate.selected = 0;
-
-			// send automatic
-			if (tableOpt.autoSend) {
-				if (candidate.list->length == 1) {
-					SendString();
-					ClearStrokeBuf();
-					HideCandWin();
-					return TRUE;
-				}
-			}
-
-			// show candidate
-			ShowCandWin();
-			return TRUE;
+			strokebuf_changed = 1;
 		}
 	}
 
+	// create candidate list
+	if (strokebuf_changed) {
+		Array *arr = GetStrokeResult(&g_table, GetStrokeBuf());
+
+		if (arr->length <= 0) {
+			// no candidate
+			array_free(arr);
+			arr = NULL;
+
+			if (tableOpt.forceNextChar) {
+				DBG_PRINT("forceNextChar\n");
+
+				// send previously selected item
+				SendString();
+				ClearStrokeBuf();
+
+				// next stroke
+				AddStrokeBuf(ch);
+				arr = GetStrokeResult(&g_table, GetStrokeBuf());
+				if (arr->length <= 0) {
+					array_free(arr);
+					arr = NULL;
+				}
+			} else {
+//				DBG_PRINT("%c is ignored\n", ch);
+//				// ignore input
+//				BackStrokeBuf();
+//				//return CallNextHookEx(hHook, nCode, wParam, lParam);
+//				return TRUE;
+			}
+		}
+
+		// free previous candidate
+		if (candidate.list) {
+			array_free(candidate.list);
+		}
+
+		candidate.list = arr;
+		candidate.selected = 0;
+
+		// send automatic
+		if (CandidateExists() && tableOpt.autoSend) {
+			if (candidate.list->length == 1) {
+				SendString();
+				ClearStrokeBuf();
+				HideCandWin();
+				return TRUE;
+			}
+		}
+
+		// show candidate
+		ShowCandWin();
+		return TRUE;
+	}
+
 	// after process keystroke, select candidate by number
-	if (candidate.list && !mod) {
+	if (CandidateExists() && !mod) {
 		switch (kb->vkCode) {
 
 		case '0':

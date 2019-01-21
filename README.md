@@ -2,12 +2,10 @@
 
 Input Hiragana, Katakana and Kanji for MS Windows.
 
-ひらがな
-<img src="hiragana.png" width="240" height="160"/>
-カタカナ
-<img src="katakana.png" width="240" height="160"/>
-漢字
-<img src="kanji.png" width="240" height="160"/>
+<a href="hiragana.png">ひらがな<img src="hiragana.png" width="320" height="240"/></a>
+<a href="katakana.png">カタカナ <img src="katakana.png" width="320" height="240"/></a>
+<a href="kanji.png">漢字 <img src="kanji.png" width="320" height="240"/></a>
+<a href="wildcard.png">ワイルドカード <img src="wildcard.png" width="320" height="240"/></a>
 
 
 ## Build Environment
@@ -38,9 +36,9 @@ run shkt.exe
 
 ## Configuration
 
-see shkt.cfg
+edit shkt.cfg
 
 
 ## Table file format
 
-`<ascii characters><space><output string>`
+`<input string><space><output string>`
