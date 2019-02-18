@@ -249,6 +249,10 @@ void MoveSelectCandidate(int n)
 	} else if (candidate.selected < 0) {
 		candidate.selected = max(0, candidate.list->length - 1);
 	}
+
+	StrokeResult *sr = array_get(candidate.list, candidate.selected);
+	const char *str = sr->result;
+	DBG_PRINT("SendString:%s\n", str);
 }
 
 // send string to focus window

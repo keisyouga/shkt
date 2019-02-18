@@ -86,13 +86,20 @@ void LoadTable(Table *srlist, const char filename[])
 	}
 	char line[256];
 	while (fgets(line, sizeof(line), fp)) {
-		int n = sscanf(line, "%15s %15s", sr.stroke, sr.result);
+		int n = sscanf(line, "%s %s", sr.stroke, sr.result);
 		if (n == 2) {
 			//fprintf(stderr, "%s, %s\n", sr.stroke, sr.result);
 			array_add(srlist->arr, &sr);
 			AddStrokeChar(srlist, sr.stroke);
 		}
 	}
+
+// test
+//	for (int i = 0; i < srlist->arr->length; i++) {
+//		StrokeResult *sr = array_get(srlist->arr, i);
+//		fprintf(stderr, "%s, %s\n", sr->stroke, sr->result);
+//	}
+
 	fclose(fp);
 }
 

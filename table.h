@@ -3,8 +3,8 @@
 
 #include "array.h"
 
-#define STROKE_MAX_CHAR 16
-#define RESULT_MAX_CHAR 16
+#define STROKE_MAX_CHAR 64
+#define RESULT_MAX_CHAR 64
 #define STROKECHAR_MAX 256
 
 typedef struct {
