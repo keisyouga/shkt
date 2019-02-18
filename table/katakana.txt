@@ -214,9 +214,9 @@ ve	ヴェ
 vo	ヴォ
 xka	ヵ
 xke	ヶ
-odori	々
 odori	ヽ
 odori	ヾ
+odori	々
 dakuten	゛
 handakuten	゜
 !	！
