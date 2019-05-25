@@ -350,46 +350,50 @@ LRESULT CALLBACK KeyboardProc(int nCode, WPARAM wParam, LPARAM lParam)
 	// if there is strokebuf
 	if (strokeBuf.pos > 0 && !mod) {
 
+		// has candidates?
+		if (CandidateExists()) {
+			switch (kb->vkCode) {
+				// send string
+			case VK_SPACE:
+				SendString();
+				ClearStrokeBuf();
+				HideCandWin();
+				return TRUE;
+
+				// cursor move
+			case VK_UP:
+				MoveSelectCandidate(-1);
+				ShowCandWin();
+				return TRUE;
+
+			case VK_DOWN:
+				MoveSelectCandidate(1);
+				ShowCandWin();
+				return TRUE;
+
+			case VK_PRIOR:
+				MoveSelectCandidate(-PAGE_ITEM_MAX);
+				ShowCandWin();
+				return TRUE;
+
+			case VK_NEXT:
+				MoveSelectCandidate(PAGE_ITEM_MAX);
+				ShowCandWin();
+				return TRUE;
+
+			case VK_HOME:
+				candidate.selected = 0;
+				ShowCandWin();
+				return TRUE;
+
+			case VK_END:
+				candidate.selected = max(0, candidate.list->length - 1);
+				ShowCandWin();
+				return TRUE;
+			}
+		}
+
 		switch (kb->vkCode) {
-
-			// send string
-		case VK_SPACE:
-			SendString();
-			ClearStrokeBuf();
-			HideCandWin();
-			return TRUE;
-
-			// cursor move
-		case VK_UP:
-			MoveSelectCandidate(-1);
-			ShowCandWin();
-			return TRUE;
-
-		case VK_DOWN:
-			MoveSelectCandidate(1);
-			ShowCandWin();
-			return TRUE;
-
-		case VK_PRIOR:
-			MoveSelectCandidate(-PAGE_ITEM_MAX);
-			ShowCandWin();
-			return TRUE;
-
-		case VK_NEXT:
-			MoveSelectCandidate(PAGE_ITEM_MAX);
-			ShowCandWin();
-			return TRUE;
-
-		case VK_HOME:
-			candidate.selected = 0;
-			ShowCandWin();
-			return TRUE;
-
-		case VK_END:
-			candidate.selected = max(0, candidate.list->length - 1);
-			ShowCandWin();
-			return TRUE;
-
 			// clear strokebuf
 		case VK_ESCAPE:
 			ClearStrokeBuf();
