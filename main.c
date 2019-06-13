@@ -436,16 +436,21 @@ LRESULT CALLBACK KeyboardProc(int nCode, WPARAM wParam, LPARAM lParam)
 			if (tableOpt.forceNextChar) {
 				DBG_PRINT("forceNextChar\n");
 
-				// send previously selected item
-				SendString();
-				ClearStrokeBuf();
+				if (candidate.list) {
+					// send previously selected item
+					SendString();
+					ClearStrokeBuf();
 
-				// next stroke
-				AddStrokeBuf(ch);
-				arr = GetStrokeResult(&g_table, GetStrokeBuf());
-				if (arr->length <= 0) {
-					array_free(arr);
-					arr = NULL;
+					// next stroke
+					AddStrokeBuf(ch);
+					arr = GetStrokeResult(&g_table, GetStrokeBuf());
+					if (arr->length <= 0) {
+						array_free(arr);
+						arr = NULL;
+					}
+				} else {
+					ClearStrokeBuf();
+					return CallNextHookEx(hHook, nCode, wParam, lParam);
 				}
 			} else {
 //				DBG_PRINT("%c is ignored\n", ch);
