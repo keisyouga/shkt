@@ -100,7 +100,7 @@ dye	ﾁﾞｪ
 dya	ﾁﾞｬ
 dyu	ﾁﾞｭ
 dyo	ﾁﾞｮ
-l	ｯ
+q	ｯ
 xtu	ｯ
 tu	ﾂ
 du	ﾂﾞ
@@ -204,7 +204,7 @@ wa	ﾜ
 wi	ｲ
 we	ｴ
 wo	ｦ
-q	ﾝ
+l	ﾝ
 xn	ﾝ
 v	ｳﾞ
 vu	ｳﾞ
@@ -214,3 +214,8 @@ ve	ｳﾞｪ
 vo	ｳﾞｫ
 xka	ｶ
 xke	ｹ
+zb	ﾞ
+zp	ﾟ
+-	ｰ
+z;	ﾞ
+z:	ﾟ
