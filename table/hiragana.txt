@@ -103,7 +103,17 @@ dyo	ぢょ
 q	っ
 xtu	っ
 tu	つ
+tsa	つぁ
+tsi	つぃ
+tsu	つ
+tse	つぇ
+tso	つぉ
 du	づ
+dza	づぁ
+dzi	づぃ
+dzu	づ
+dze	づぇ
+dzo	づぉ
 te	て
 thi	てぃ
 the	てぇ
